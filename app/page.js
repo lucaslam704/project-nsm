@@ -7,7 +7,7 @@ export default function Home() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center max-w-md w-full">
         <title>Not Social Media</title>
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2 text-blue-800">Welcome to NSM 22</h1>
+          <h1 className="text-3xl font-bold mb-2 text-blue-800">Welcome to NSM 33</h1>
           <p className="text-gray-600">Spend your time simply and joyfully with everybody.</p>
         </div>
         
