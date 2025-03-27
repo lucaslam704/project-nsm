@@ -7,7 +7,7 @@ export default function Home() {
       <main className="flex flex-col gap-[32px] row-start-2 items-center max-w-md w-full">
         <title>Not Social Media</title>
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2 text-blue-800">Welcome to NSM 33</h1>
+          <h1 className="text-3xl font-bold mb-2 text-blue-800">Welcome to NSM</h1>
           <p className="text-gray-600">Spend your time simply and joyfully with everybody.</p>
         </div>
         
@@ -40,10 +40,10 @@ export default function Home() {
             </div>
             
             <div className="flex justify-between items-center text-sm">
-              <Link href="/register" className="text-blue-600 hover:underline">
+              <Link href="user-auth/register" className="text-blue-600 hover:underline">
                 Register
               </Link>
-              <Link href="/forgot-password" className="text-blue-600 hover:underline">
+              <Link href="user-auth/forgot-password" className="text-blue-600 hover:underline">
                 Forgot your password?
               </Link>
             </div>
