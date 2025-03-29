@@ -14,7 +14,7 @@ export default function ForgotPasswordForm() {
   const [securityQuestion, setSecurityQuestion] = useState("");
 
   const fakeDB = {
-    "user@example.com": {
+    "admin@gmail.com": {
       securityQuestion: "What is your favorite color?",
       securityAnswer: "blue",
     },
