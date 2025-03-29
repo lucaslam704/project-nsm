@@ -11,7 +11,7 @@ export default function UserAuth() {
     // Redirect to home page after a short delay
     const redirectTimer = setTimeout(() => {
       router.push('/');
-    }, 2000); // 3 second delay before redirect
+    }, 2500);
 
     // Cleanup the timer if the component unmounts
     return () => clearTimeout(redirectTimer);
