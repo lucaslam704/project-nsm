@@ -1,98 +1,109 @@
 "use client";
-import Image from "next/image";
-import Link from "next/link";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import {
+  Box,
+  Button,
+  Input,
+  FormControl,
+  FormLabel,
+  Text,
+  Heading,
+  VStack,
+  Alert,
+  AlertIcon,
+  Link,
+  Container,
+} from "@chakra-ui/react";
 
 export default function Home() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-const router = useRouter();
-const [error, setError] = useState("");
-const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
-const [isAdmin, setIsAdmin] = useState(false);
+  const AdminUser = {
+    "admin@gmail.com": {
+      password: "123",
+    },
+  };
 
-const AdminUser = {
-  "admin@gmail.com" : {
-    password: "123",
-  }
-};
-
-const handleLogin = (e) => {
-  e.preventDefault();
-  if (AdminUser[email] && AdminUser[email].password === password) {
-    alert("Login in as Administrator.....");
-    localStorage.setItem("adminEmail", email);
-    router.push("/main");
-    setError("");
-  } else {
-    setError("This server is only available for administrators.");
-  }
-};
-
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (AdminUser[email] && AdminUser[email].password === password) {
+      alert("Logging in as Administrator...");
+      localStorage.setItem("adminEmail", email);
+      router.push("/main");
+      setError("");
+    } else {
+      setError("Server is only available for administrators.");
+    }
+  };
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gradient-to-br from-blue-50 to-gray-100">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center max-w-md w-full">
-        <title>Not Social Media</title>
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2 text-blue-800">Welcome to NSM</h1>
-          <p className="text-gray-600">Spend your time simply and joyfully with everybody.</p>
-        </div>
+    <Box
+      minH="100vh"
+      bgGradient="linear(to-br, blue.50, gray.100)"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      p={8}
+    >
+      <Container maxW="md" p={8} bg="white" boxShadow="lg" borderRadius="lg">
+        <VStack spacing={6} align="center">
+          <Heading color="blue.800">Welcome to NSM</Heading>
+          <Text color="gray.600" textAlign="center">
+            Spend your time simply and joyfully with everybody.
+          </Text>
 
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        
-        <div className="bg-white shadow-md rounded-lg p-8 w-full border border-gray-200">
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-            
-            <div className="flex justify-between items-center text-sm">
-              <Link href="user-auth/register" className="text-blue-600 hover:underline">
-                Register
-              </Link>
-              <Link href="user-auth/forgot-password" className="text-blue-600 hover:underline">
-                Forgot your password?
-              </Link>
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mt-2"
-            >
-              Login
-            </button>
-          </form>
-        </div>
-      </main>
-    </div>
+          {error && (
+            <Alert status="error" borderRadius="md">
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
+
+          <Box as="form" w="full" onSubmit={handleLogin}>
+            <VStack spacing={4}>
+              <FormControl>
+                <FormLabel>Email</FormLabel>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  focusBorderColor="blue.500"
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Password</FormLabel>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  focusBorderColor="blue.500"
+                />
+              </FormControl>
+
+              <Box display="flex" justifyContent="space-between" w="full" fontSize="sm">
+                <Link color="blue.600" href="user-auth/register" _hover={{ textDecoration: "underline" }}>
+                  Register
+                </Link>
+                <Link color="blue.600" href="user-auth/forgot-password" _hover={{ textDecoration: "underline" }}>
+                  Forgot your password?
+                </Link>
+              </Box>
+
+              <Button type="submit" colorScheme="blue" w="full">
+                Login
+              </Button>
+            </VStack>
+          </Box>
+        </VStack>
+      </Container>
+    </Box>
   );
 }

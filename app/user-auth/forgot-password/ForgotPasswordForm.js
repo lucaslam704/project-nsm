@@ -1,10 +1,13 @@
 "use client";
+
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Box, Button, Input, Text, VStack, Heading, useToast } from "@chakra-ui/react";
+import Link from "next/link";
 
 export default function ForgotPasswordForm() {
   const router = useRouter();
+  const toast = useToast();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [securityAnswer, setSecurityAnswer] = useState("");
@@ -46,94 +49,45 @@ export default function ForgotPasswordForm() {
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match.");
     } else {
-      alert("Password reset successful!");
+      toast({ title: "Password reset successful!", status: "success", duration: 2500, isClosable: true });
       router.push("/");
     }
   };
 
   return (
-    <div className="grid place-items-center min-h-screen p-8 bg-gradient-to-br from-blue-50 to-gray-100 font-[family-name:var(--font-geist-sans)]">
-      <main className="bg-white shadow-md rounded-lg p-8 w-full max-w-md border border-gray-200">
-        <h1 className="text-2xl font-bold text-blue-800 mb-4 text-center">
+    <VStack minH="100vh" justify="center" p={8} bgGradient="linear(to-br, blue.50, gray.100)">
+      <Box bg="white" p={8} borderRadius="lg" boxShadow="md" w="full" maxW="md">
+        <Heading as="h1" size="lg" textAlign="center" color="blue.800" mb={4}>
           Reset Your Password
-        </h1>
-
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        </Heading>
+        {error && <Text color="red.500" textAlign="center" mb={4}>{error}</Text>}
 
         {step === 1 && (
-          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-              placeholder="Enter your email"
-              required
-            />
-            <button type="submit" className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-              Next
-            </button>
-            <Link href="/" className="text-blue-600 text-sm text-center hover:underline">
-              Back to Login
-            </Link>
+          <form onSubmit={handleEmailSubmit}>
+            <Input placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} mb={4} required />
+            <Button type="submit" colorScheme="blue" w="full">Next</Button>
+            <Link href="/" passHref><Text mt={2} textAlign="center" color="blue.600" cursor="pointer">Back to Login</Text></Link>
           </form>
         )}
 
         {step === 2 && (
-          <form onSubmit={handleSecuritySubmit} className="flex flex-col gap-4">
-            <p className="text-sm text-gray-900">{securityQuestion}</p>
-            <input
-              type="text"
-              value={securityAnswer}
-              onChange={(e) => setSecurityAnswer(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-              placeholder="Your Answer"
-              required
-            />
-            <button type="submit" className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-              Next
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="text-blue-600 text-sm hover:underline"
-            >
-              Back
-            </button>
+          <form onSubmit={handleSecuritySubmit}>
+            <Text mb={2}>{securityQuestion}</Text>
+            <Input placeholder="Your Answer" value={securityAnswer} onChange={(e) => setSecurityAnswer(e.target.value)} mb={4} required />
+            <Button type="submit" colorScheme="blue" w="full">Next</Button>
+            <Button variant="link" onClick={() => setStep(1)} mt={2} color="blue.600">Back</Button>
           </form>
         )}
 
         {step === 3 && (
-          <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-              placeholder="New Password"
-              required
-            />
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-              placeholder="Confirm Password"
-              required
-            />
-            <button type="submit" className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-              Reset Password
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="text-blue-600 text-sm hover:underline"
-            >
-              Back
-            </button>
+          <form onSubmit={handlePasswordSubmit}>
+            <Input placeholder="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} mb={4} required />
+            <Input placeholder="Confirm Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} mb={4} required />
+            <Button type="submit" colorScheme="blue" w="full">Reset Password</Button>
+            <Button variant="link" onClick={() => setStep(2)} mt={2} color="blue.600">Back</Button>
           </form>
         )}
-      </main>
-    </div>
+      </Box>
+    </VStack>
   );
 }
