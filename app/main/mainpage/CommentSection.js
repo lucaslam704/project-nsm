@@ -21,7 +21,7 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-import { SmileIcon, SendIcon } from "../../../components/icons"; 
+import { SmileIcon, SendIcon } from "../../../chakra-ui/icons"; 
 import { useAuth } from "@/utils/AuthContext";
 import EmojiPicker from 'emoji-picker-react';
 import { getDoc, doc } from 'firebase/firestore';

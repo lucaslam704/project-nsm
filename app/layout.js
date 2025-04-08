@@ -1,6 +1,6 @@
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
-import { Provider } from "@/components/ui/provider"
+import { Provider } from "@/chakra-ui/ui/provider"
 
 const inter = Inter({
   variable: "--font-inter",

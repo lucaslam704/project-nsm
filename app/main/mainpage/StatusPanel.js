@@ -24,7 +24,7 @@ import {
   HStack
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
-import { SmileIcon } from "../../../components/icons"; // Updated relative path
+import { SmileIcon } from "../../../chakra-ui/icons"; // Updated relative path
 import EmojiPicker from 'emoji-picker-react';
 
 export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
