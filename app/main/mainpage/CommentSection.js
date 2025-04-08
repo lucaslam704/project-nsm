@@ -21,63 +21,55 @@ import {
   useToast,
   Spinner
 } from "@chakra-ui/react";
-// We'll use custom icons instead of Chakra UI icons
+import { SmileIcon, SendIcon } from "../../../components/icons"; // Updated relative path
 import { useAuth } from "@/utils/AuthContext";
 import EmojiPicker from 'emoji-picker-react';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '@/utils/firebase';
 
-// Custom SmileIcon since it's not included in Chakra UI icons
-function SmileIcon(props) {
-  return (
-    <svg
-      stroke="currentColor"
-      fill="currentColor"
-      strokeWidth="0"
-      viewBox="0 0 24 24"
-      height="1em"
-      width="1em"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"></path>
-      <path d="M14.829 14.828a4.055 4.055 0 0 1-1.272.858 4.002 4.002 0 0 1-4.875-1.45l-1.658 1.119a6.063 6.063 0 0 0 1.621 1.62 5.963 5.963 0 0 0 2.148.903 6.042 6.042 0 0 0 2.415 0 5.972 5.972 0 0 0 2.148-.903c.313-.212.612-.458.886-.731.272-.271.52-.571.734-.889l-1.658-1.119a4.017 4.017 0 0 1-.489.592z"></path>
-      <circle cx="8.5" cy="10.5" r="1.5"></circle>
-      <circle cx="15.493" cy="10.493" r="1.493"></circle>
-    </svg>
-  );
-}
-
-// Custom SendIcon since it's not included in Chakra UI icons
-function SendIcon(props) {
-  return (
-    <svg
-      stroke="currentColor"
-      fill="none"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      height="1em"
-      width="1em"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <line x1="22" y1="2" x2="11" y2="13"></line>
-      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-    </svg>
-  );
-}
-
-export default function CommentSection({ isOpen, onClose, postId, postUsername }) {
+export default function CommentSection({ 
+  isOpen, 
+  onClose, 
+  postId, 
+  postUsername, 
+  onCommentAdded,
+  postUserProfilePic 
+}) {
   const { currentUser } = useAuth();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [userProfiles, setUserProfiles] = useState({}); // Cache for user profiles
   const emojiPickerRef = useRef(null);
   const inputRef = useRef(null);
   const toast = useToast();
-  // Define color mode values for the component
   const borderColor = useColorModeValue("gray.200", "gray.700");
+
+  // Fetch user profiles for comments
+  useEffect(() => {
+    const fetchUserProfiles = async () => {
+      if (!comments.length) return;
+
+      const uniqueUserIds = [...new Set(comments.map(comment => comment.userId))];
+      const profiles = {};
+
+      for (const userId of uniqueUserIds) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          if (userDoc.exists()) {
+            profiles[userId] = userDoc.data().profilePic;
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+
+      setUserProfiles(profiles);
+    };
+
+    fetchUserProfiles();
+  }, [comments]);
 
   // Log authentication state for debugging
   useEffect(() => {
@@ -161,31 +153,22 @@ export default function CommentSection({ isOpen, onClose, postId, postUsername }
   };
 
   // Handle submitting a new comment
-  const handleSubmitComment = async () => {
-    if (!newComment.trim()) return;
-    if (!currentUser) {
-      toast({
-        title: "Authentication required",
-        description: "You must be logged in to comment",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || !currentUser) return;
 
     try {
-      console.log("Starting comment submission process...");
-      console.log("Current user:", currentUser);
-      console.log("Post ID:", postId);
+      // Get current user's profile
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      const userProfilePic = userDoc.exists() ? userDoc.data().profilePic : null;
 
-      // Create a simple comment object
       const commentData = {
         postId: postId,
         userId: currentUser.uid,
         username: currentUser.email?.split('@')[0] || "User",
         text: newComment.trim(),
-        createdAt: new Date() // Use a JavaScript Date instead of serverTimestamp for immediate feedback
+        createdAt: new Date(),
+        userProfilePic: userProfilePic // Include profile pic in comment data
       };
 
       console.log("Comment data prepared:", commentData);
@@ -228,6 +211,11 @@ export default function CommentSection({ isOpen, onClose, postId, postUsername }
         // Save back to localStorage
         localStorage.setItem(localStorageKey, JSON.stringify(allComments));
         console.log("Comment saved to localStorage");
+
+        // Notify parent component about the new comment
+        if (onCommentAdded) {
+          onCommentAdded(postId);
+        }
       } catch (storageError) {
         console.error("Error saving to localStorage:", storageError);
       }
@@ -252,21 +240,33 @@ export default function CommentSection({ isOpen, onClose, postId, postUsername }
   const formatDate = (date) => {
     if (!date) return "";
 
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Edmonton'// Adjust this to your timezone
+    };
 
-    if (diffInSeconds < 60) return "just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-
-    return date.toLocaleString();
+    return new Date(date).toLocaleString('en-US', options);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Comments on {postUsername}'s post</ModalHeader>
+        <ModalHeader>
+          <Flex align="center" gap={2}>
+            <Avatar 
+              size="sm" 
+              name={postUsername} 
+              src={postUserProfilePic}
+            />
+            <Text>{postUsername}'s Post</Text>
+          </Flex>
+        </ModalHeader>
         <ModalCloseButton />
 
         <ModalBody>
@@ -290,11 +290,15 @@ export default function CommentSection({ isOpen, onClose, postId, postUsername }
                 >
                   <Flex justify="space-between" mb={1}>
                     <HStack>
-                      <Avatar size="xs" name={comment.username} />
+                      <Avatar 
+                        size="xs" 
+                        name={comment.username} 
+                        src={userProfiles[comment.userId] || comment.userProfilePic}
+                      />
                       <Text fontWeight="bold" fontSize="sm">{comment.username}</Text>
                     </HStack>
                     <Text fontSize="xs" color="gray.500">
-                      {formatDate(comment.createdAt)}
+                      {formatDate(comment.createdAt instanceof Date ? comment.createdAt : new Date(comment.createdAt))}
                     </Text>
                   </Flex>
                   <Text fontSize="md">{comment.text}</Text>

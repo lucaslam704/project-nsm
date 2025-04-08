@@ -19,8 +19,8 @@ export default function RightPanel({ isOpen, onClose }) {
         <DrawerHeader>Notifications</DrawerHeader>
         <DrawerBody>
           <VStack spacing={4} align="stretch">
-            <Notification text="User3 liked your post!" />
-            <Notification text="New friend request from User4!" />
+            <Notification text="User @2 commented on your post '.....'!" />
+            <Notification text="Your post '....' has new comments !" />
           </VStack>
         </DrawerBody>
       </DrawerContent>

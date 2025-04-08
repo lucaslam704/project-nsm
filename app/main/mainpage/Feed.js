@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/utils/AuthContext";
 import {
   Box,
@@ -12,7 +12,8 @@ import {
   useDisclosure,
   useColorModeValue,
   useToast,
-  Flex
+  Flex,
+  Avatar
 } from "@chakra-ui/react";
 import { BellIcon, ArrowLeftIcon, ChatIcon, DownloadIcon, AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import Sidebar from "./Sidebar";
@@ -20,7 +21,7 @@ import RightPanel from "./RightPanel";
 import StatusPanel from "./StatusPanel";
 import CommentSection from "./CommentSection";
 import { db } from "@/utils/firebase";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore";
 
 export default function Feed() {
   // Get current user
@@ -85,7 +86,7 @@ export default function Feed() {
               userId: data.userId,
               username: data.username || "Unknown User",
               text: data.text || "",
-              imgSrc: data.imgSrc || "/pic/sample1.jpg", // Use the stored image URL or fallback
+              imgSrc: data.imgSrc || "/pic/sample1.jpg",
               timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toISOString() : new Date().toISOString()
             });
           } catch (docError) {
@@ -136,15 +137,29 @@ export default function Feed() {
   }, []);
 
   // Handle post deletion
-  const handleDeletePost = (postId) => {
-    // Remove the post from the state immediately for a responsive UI
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-
-    // Refresh posts from the server after a short delay
-    // This ensures we have the latest data
-    setTimeout(() => {
+  const handleDeletePost = async (postId) => {
+    try {
+      // Remove the post from Firestore
+      await deleteDoc(doc(db, "posts", postId));
+      
+      // Remove the post from the state immediately for a responsive UI
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+      
+      // No need to refresh posts from server since we've already updated both
+      // the database and local state
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      // Refresh posts to ensure UI is in sync with database
       fetchPosts();
-    }, 1000);
+    }
   };
 
   // Handle new status submission
@@ -213,6 +228,7 @@ export default function Feed() {
                 imgSrc={post.imgSrc}
                 onDelete={handleDeletePost}
                 isCurrentUserPost={currentUser && post.userId && currentUser.uid && post.userId === currentUser.uid}
+                userId={post.userId}
               />
             ))}
           </VStack>
@@ -226,10 +242,10 @@ export default function Feed() {
           icon={<AddIcon />}
           colorScheme="green"
           borderRadius="full"
-          size="md" // Smaller button
+          size="md"
           position="absolute"
           top={5}
-          right={14} // Position to the left of notification button
+          right={20} // Increased from 14 to 20 to create more space
           onClick={onStatusOpen}
           zIndex={1}
         />
@@ -240,23 +256,26 @@ export default function Feed() {
           icon={isNotificationOpen ? <ArrowLeftIcon /> : <BellIcon />}
           colorScheme="blue"
           borderRadius="full"
-          size="md" // Smaller button
+          size="md"
           position="absolute"
           top={5}
           right={5}
           onClick={isNotificationOpen ? onNotificationClose : onNotificationOpen}
           zIndex={1}
         />
+        
+        {/* Notification Badge */}
         {notificationCount > 0 && !isNotificationOpen && (
           <Badge
             position="absolute"
-            top="0"
-            right="0"
+            top={4}    // Changed from "0" to 3
+            right={4}  // Changed from "0" to 3
             bg="red.500"
             color="white"
             borderRadius="full"
             px={2}
-            fontSize="0.7em" // Smaller font
+            fontSize="0.7em"
+            transform="translate(25%, -25%)" // Added transform to overlap with the icon
             zIndex={2}
           >
             {notificationCount}
@@ -277,36 +296,60 @@ export default function Feed() {
   );
 }
 
-function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
+function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost, userId }) {
   const bgColor = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const [isDeleting, setIsDeleting] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
+  const [userProfilePic, setUserProfilePic] = useState(null);
   const toast = useToast();
 
-  // Get comment count from localStorage
+  // Fetch user's profile picture
   useEffect(() => {
-    if (id) {
+    const fetchUserProfile = async () => {
+      if (!userId) return;
       try {
-        // Get comments from localStorage
-        const localStorageKey = 'localComments';
-        const storedComments = localStorage.getItem(localStorageKey);
-
-        if (storedComments) {
-          const allComments = JSON.parse(storedComments);
-          // Count comments for this post
-          const count = allComments.filter(comment => comment.postId === id).length;
-          setCommentCount(count);
-        } else {
-          setCommentCount(0);
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserProfilePic(userData.profilePic);
         }
       } catch (error) {
-        console.error("Error getting comment count from localStorage:", error);
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [userId]);
+
+  // Function to update comment count
+  const updateCommentCount = useCallback(() => {
+    try {
+      const localStorageKey = 'localComments';
+      const storedComments = localStorage.getItem(localStorageKey);
+      if (storedComments) {
+        const allComments = JSON.parse(storedComments);
+        const count = allComments.filter(comment => comment.postId === id).length;
+        setCommentCount(count);
+      } else {
         setCommentCount(0);
       }
+    } catch (error) {
+      console.error("Error getting comment count from localStorage:", error);
+      setCommentCount(0);
     }
   }, [id]);
+
+  // Update comment count when component mounts and when comments change
+  useEffect(() => {
+    updateCommentCount();
+  }, [updateCommentCount]);
+
+  // Handle new comment added
+  const handleCommentAdded = useCallback(() => {
+    updateCommentCount();
+  }, [updateCommentCount]);
 
   // Function to handle image errors
   const handleImageError = (e) => {
@@ -321,21 +364,17 @@ function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
     try {
       setIsDeleting(true);
 
-      // For now, we'll just update the UI since we're not using Firestore
-      // In a real app, you would delete the post from the database
+      // Delete the post from Firestore
+      await deleteDoc(doc(db, "posts", id));
 
-      // Also delete any comments for this post from localStorage
+      // Delete comments from localStorage
       try {
         const localStorageKey = 'localComments';
         const storedComments = localStorage.getItem(localStorageKey);
-
         if (storedComments) {
           const allComments = JSON.parse(storedComments);
-          // Filter out comments for this post
           const remainingComments = allComments.filter(comment => comment.postId !== id);
-          // Save back to localStorage
           localStorage.setItem(localStorageKey, JSON.stringify(remainingComments));
-          console.log(`Deleted comments for post ${id} from localStorage`);
         }
       } catch (storageError) {
         console.error("Error removing comments from localStorage:", storageError);
@@ -378,7 +417,14 @@ function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
       borderColor={borderColor}
     >
       <Flex justify="space-between" align="center" mb={1}>
-        <Text fontWeight="bold" fontSize="md">{username}</Text>
+        <HStack>
+          <Avatar 
+            size="sm" 
+            name={username} 
+            src={userProfilePic} 
+          />
+          <Text fontWeight="bold" fontSize="md">{username}</Text>
+        </HStack>
         {isCurrentUserPost && (
           <IconButton
             aria-label="Delete post"
@@ -483,6 +529,8 @@ function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
         onClose={() => setIsCommentSectionOpen(false)}
         postId={id}
         postUsername={username}
+        onCommentAdded={handleCommentAdded}
+        postUserProfilePic={userProfilePic}
       />
     </Box>
   );

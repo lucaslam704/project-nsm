@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useAuth } from "@/utils/AuthContext";
 import { db } from "@/utils/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -18,9 +18,14 @@ import {
   FormControl,
   FormLabel,
   useColorModeValue,
-  useToast
+  useToast,
+  Textarea,
+  IconButton,
+  HStack
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
+import { SmileIcon } from "../../../components/icons"; // Updated relative path
+import EmojiPicker from 'emoji-picker-react';
 
 export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
   const { currentUser } = useAuth();
@@ -31,6 +36,9 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
   const [compressing, setCompressing] = useState(false);
   const fileInputRef = useRef(null);
   const toast = useToast();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
+  const captionRef = useRef(null);
 
   // Function to compress image
   const compressImage = useCallback((file, maxWidth = 1200, maxHeight = 900, quality = 0.9) => {
@@ -143,7 +151,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
         if (reduction > 0) {
           toast({
             title: "Image optimized",
-            description: `Reduced by ${reduction}% (${originalSize}KB → ${newSize}KB)`,
             status: "success",
             duration: 3000,
             isClosable: true,
@@ -280,6 +287,37 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
     onClose();
   };
 
+  const onEmojiClick = (emojiObject) => {
+    const emoji = emojiObject.emoji;
+    const textArea = captionRef.current;
+    const cursorPosition = textArea.selectionStart;
+    const textBeforeCursor = caption.slice(0, cursorPosition);
+    const textAfterCursor = caption.slice(cursorPosition);
+
+    setCaption(textBeforeCursor + emoji + textAfterCursor);
+
+    // Focus back on textarea after selecting emoji
+    setTimeout(() => {
+      textArea.focus();
+      const newCursorPosition = cursorPosition + emoji.length;
+      textArea.selectionStart = newCursorPosition;
+      textArea.selectionEnd = newCursorPosition;
+    }, 10);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <Drawer isOpen={isOpen} placement="right" onClose={handleCancel} size="md">
       <DrawerOverlay />
@@ -377,11 +415,39 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
             {imagePreview && (
               <FormControl>
                 <FormLabel>Caption</FormLabel>
-                <Input
-                  placeholder="Write a caption for your status..."
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                />
+                <Box position="relative">
+                  <HStack align="flex-start">
+                    <Textarea
+                      ref={captionRef}
+                      placeholder="Write a caption for your status..."
+                      value={caption}
+                      onChange={(e) => setCaption(e.target.value)}
+                      minH="150px"
+                      resize="vertical"
+                      whiteSpace="pre-wrap"
+                    />
+                    <IconButton
+                      aria-label="Add emoji"
+                      icon={<SmileIcon />}
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      colorScheme="yellow"
+                      variant="ghost"
+                    />
+                  </HStack>
+
+                  {showEmojiPicker && (
+                    <Box
+                      ref={emojiPickerRef}
+                      position="absolute"
+                      right="0"
+                      top="100%"
+                      zIndex={10}
+                      boxShadow="xl"
+                    >
+                      <EmojiPicker onEmojiClick={onEmojiClick} />
+                    </Box>
+                  )}
+                </Box>
               </FormControl>
             )}
           </VStack>
