@@ -219,7 +219,8 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
         username: username,
         text: caption,
         imgSrc: imagePath, // Use the data URL directly
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        commentCount: 0 // Initialize comment count
       };
 
       // Save post to Firestore
