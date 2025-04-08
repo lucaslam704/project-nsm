@@ -38,19 +38,14 @@ export default function Feed() {
     onClose: onNotificationClose
   } = useDisclosure();
 
-  // Use useDisclosure to control the status drawer
   const {
     isOpen: isStatusOpen,
     onOpen: onStatusOpen,
     onClose: onStatusClose
   } = useDisclosure();
 
-  // We'll use toast in the Post component, not here
-
-  // Example: number of notifications. Replace with your dynamic count.
   const notificationCount = 2;
 
-  // Function to fetch posts from Firestore
   const fetchPosts = async () => {
     try {
       setLoading(true);
@@ -97,7 +92,6 @@ export default function Feed() {
         console.log("Processed", fetchedPosts.length, "posts");
         setPosts(fetchedPosts);
 
-        // If we successfully fetched posts but the array is empty, set a different message
         if (fetchedPosts.length === 0) {
           console.log("No posts found");
         }
@@ -108,7 +102,6 @@ export default function Feed() {
     } catch (err) {
       console.error("Error fetching posts:", err);
 
-      // If Firestore fails, use sample data as fallback
       const samplePosts = [
         {
           id: '1',

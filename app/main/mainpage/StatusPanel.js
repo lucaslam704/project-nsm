@@ -47,7 +47,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
-        // Use HTMLImageElement instead of Image to avoid conflict with Chakra UI Image component
         const img = new window.Image(); // Use window.Image to explicitly reference the HTML Image constructor
         img.src = event.target.result;
         img.onload = () => {
@@ -128,7 +127,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
       setImage(file);
 
       try {
-        // Show a loading state while compressing
         toast({
           title: "Compressing image",
           description: "Please wait while we optimize your image...",
@@ -137,13 +135,10 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
           isClosable: true,
         });
 
-        // Compress the image
         const compressedImage = await compressImage(file);
 
-        // Set the compressed image as the preview
         setImagePreview(compressedImage);
 
-        // Show success message with compression info
         const originalSize = Math.round(file.size / 1024);
         const newSize = Math.round((compressedImage.length * 3) / 4 / 1024);
         const reduction = Math.round(((originalSize - newSize) / originalSize) * 100);
@@ -159,7 +154,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
       } catch (error) {
         console.error("Error compressing image:", error);
 
-        // Fallback to standard preview if compression fails
         const reader = new FileReader();
         reader.onloadend = () => {
           setImagePreview(reader.result);
@@ -230,7 +224,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
         commentCount: 0 // Initialize comment count
       };
 
-      // Save post to Firestore
       try {
         console.log('Saving post to Firestore...');
         const docRef = await addDoc(collection(db, "posts"), postData);
