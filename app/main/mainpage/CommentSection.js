@@ -103,8 +103,6 @@ export default function CommentSection({
       // Sort comments by createdAt (newest first)
       postComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      console.log(`Found ${postComments.length} comments for post ${postId} in local storage`);
-
       // Update state
       setComments(postComments);
       setLoading(false);
