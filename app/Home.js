@@ -69,24 +69,26 @@ export default function Home() {
           <Box as="form" w="full" onSubmit={handleLogin}>
             <VStack spacing={4}>
               <FormControl>
-                <FormLabel>Email</FormLabel>
+                <FormLabel color="gray.500">Email</FormLabel>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   focusBorderColor="blue.500"
+                  color="gray.500"
                 />
               </FormControl>
 
               <FormControl>
-                <FormLabel>Password</FormLabel>
+                <FormLabel color="gray.500">Password</FormLabel>
                 <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   focusBorderColor="blue.500"
+                  color="gray.500"
                 />
               </FormControl>
 

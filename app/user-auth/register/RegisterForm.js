@@ -91,32 +91,32 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
           <VStack spacing={4} mt={4}>
             <FormControl isRequired>
-              <FormLabel>First Name</FormLabel>
-              <Input id="firstName" value={formData.firstName} onChange={handleChange} />
+              <FormLabel color="red.500">First Name</FormLabel>
+              <Input id="firstName" value={formData.firstName} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <FormControl isRequired>
-              <FormLabel>Last Name</FormLabel>
-              <Input id="lastName" value={formData.lastName} onChange={handleChange} />
+              <FormLabel color="red.500">Last Name</FormLabel>
+              <Input id="lastName" value={formData.lastName} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <FormControl isRequired>
-              <FormLabel>Email</FormLabel>
-              <Input type="email" id="email" value={formData.email} onChange={handleChange} />
+              <FormLabel color="red.500">Email</FormLabel>
+              <Input type="email" id="email" value={formData.email} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <FormControl isRequired>
-              <FormLabel>Password</FormLabel>
-              <Input type="password" id="password" value={formData.password} onChange={handleChange} />
+              <FormLabel color="red.500">Password</FormLabel>
+              <Input type="password" id="password" value={formData.password} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <FormControl isRequired>
-              <FormLabel>Confirm Password</FormLabel>
-              <Input type="password" id="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
+              <FormLabel color="red.500">Confirm Password</FormLabel>
+              <Input type="password" id="confirmPassword" value={formData.confirmPassword} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <FormControl isRequired>
-              <FormLabel>Security Question</FormLabel>
-              <Input id="securityQuestion" value={formData.securityQuestion} onChange={handleChange} />
+              <FormLabel color="red.500">Security Question</FormLabel>
+              <Input id="securityQuestion" value={formData.securityQuestion} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <FormControl isRequired>
-              <FormLabel>Security Answer</FormLabel>
-              <Input id="securityAnswer" value={formData.securityAnswer} onChange={handleChange} />
+              <FormLabel color="red.500">Security Answer</FormLabel>
+              <Input id="securityAnswer" value={formData.securityAnswer} onChange={handleChange} color="gray.500"/>
             </FormControl>
             <Button
               type="submit"
