@@ -18,6 +18,7 @@ import { BellIcon, ArrowLeftIcon, ChatIcon, DownloadIcon, AddIcon, DeleteIcon } 
 import Sidebar from "./Sidebar";
 import RightPanel from "./RightPanel";
 import StatusPanel from "./StatusPanel";
+import CommentSection from "./CommentSection";
 import { db } from "@/utils/firebase";
 import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 
@@ -280,7 +281,32 @@ function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
   const bgColor = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
   const toast = useToast();
+
+  // Get comment count from localStorage
+  useEffect(() => {
+    if (id) {
+      try {
+        // Get comments from localStorage
+        const localStorageKey = 'localComments';
+        const storedComments = localStorage.getItem(localStorageKey);
+
+        if (storedComments) {
+          const allComments = JSON.parse(storedComments);
+          // Count comments for this post
+          const count = allComments.filter(comment => comment.postId === id).length;
+          setCommentCount(count);
+        } else {
+          setCommentCount(0);
+        }
+      } catch (error) {
+        console.error("Error getting comment count from localStorage:", error);
+        setCommentCount(0);
+      }
+    }
+  }, [id]);
 
   // Function to handle image errors
   const handleImageError = (e) => {
@@ -295,12 +321,25 @@ function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
     try {
       setIsDeleting(true);
 
-      // Import Firestore functions directly in the component
-      const { deleteDoc, doc } = await import('firebase/firestore');
-      const { db } = await import('@/utils/firebase');
+      // For now, we'll just update the UI since we're not using Firestore
+      // In a real app, you would delete the post from the database
 
-      // Delete the document from Firestore
-      await deleteDoc(doc(db, "posts", id));
+      // Also delete any comments for this post from localStorage
+      try {
+        const localStorageKey = 'localComments';
+        const storedComments = localStorage.getItem(localStorageKey);
+
+        if (storedComments) {
+          const allComments = JSON.parse(storedComments);
+          // Filter out comments for this post
+          const remainingComments = allComments.filter(comment => comment.postId !== id);
+          // Save back to localStorage
+          localStorage.setItem(localStorageKey, JSON.stringify(remainingComments));
+          console.log(`Deleted comments for post ${id} from localStorage`);
+        }
+      } catch (storageError) {
+        console.error("Error removing comments from localStorage:", storageError);
+      }
 
       // Call the onDelete callback to update the UI
       if (onDelete) {
@@ -382,21 +421,69 @@ function Post({ id, username, text, imgSrc, onDelete, isCurrentUserPost }) {
       </Box>
 
       <HStack spacing={2}>
-        <IconButton
-          aria-label="Comment"
-          icon={<ChatIcon />}
-          colorScheme="blue"
-          size="sm"
-          variant="ghost"
-        />
+        <Box position="relative">
+          <IconButton
+            aria-label="Comment"
+            icon={<ChatIcon />}
+            colorScheme="blue"
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsCommentSectionOpen(true)}
+          />
+          {commentCount > 0 && (
+            <Box
+              position="absolute"
+              top="-8px"
+              right="-8px"
+              bg="red.500"
+              color="white"
+              borderRadius="full"
+              fontSize="xs"
+              fontWeight="bold"
+              w="18px"
+              h="18px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              {commentCount > 99 ? '99+' : commentCount}
+            </Box>
+          )}
+        </Box>
         <IconButton
           aria-label="Download"
           icon={<DownloadIcon />}
           colorScheme="green"
           size="sm"
           variant="ghost"
+          onClick={() => {
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = imgSrc;
+            link.download = `post-image-${id || Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show toast notification
+            toast({
+              title: "Image downloaded",
+              description: "The image has been downloaded successfully",
+              status: "success",
+              duration: 3000,
+              isClosable: true,
+            });
+          }}
         />
       </HStack>
+
+      {/* Comment Section Modal */}
+      <CommentSection
+        isOpen={isCommentSectionOpen}
+        onClose={() => setIsCommentSectionOpen(false)}
+        postId={id}
+        postUsername={username}
+      />
     </Box>
   );
 }
