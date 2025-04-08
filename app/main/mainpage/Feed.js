@@ -31,7 +31,6 @@ export default function Feed() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Use useDisclosure to control the notification drawer
   const {
     isOpen: isNotificationOpen,
     onOpen: onNotificationOpen,
@@ -135,11 +134,8 @@ export default function Feed() {
       // Remove the post from Firestore
       await deleteDoc(doc(db, "posts", postId));
       
-      // Remove the post from the state immediately for a responsive UI
       setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
       
-      // No need to refresh posts from server since we've already updated both
-      // the database and local state
     } catch (error) {
       console.error("Error deleting post:", error);
       toast({
@@ -150,18 +146,14 @@ export default function Feed() {
         isClosable: true,
       });
       
-      // Refresh posts to ensure UI is in sync with database
       fetchPosts();
     }
   };
 
   // Handle new status submission
   const handleStatusSubmit = (newPost) => {
-    // Add the new post to the state immediately for a responsive UI
     setPosts(prevPosts => [newPost, ...prevPosts]);
 
-    // Refresh posts from the server after a short delay
-    // This ensures we have the latest data
     setTimeout(() => {
       fetchPosts();
     }, 1000);
@@ -169,7 +161,7 @@ export default function Feed() {
 
   return (
     <HStack h="100vh" spacing={0} align="stretch">
-      {/* Render Sidebar only once if it's not rendered in a higher layout */}
+      { /* Sidebar */ }
       <Sidebar />
 
       <Box
@@ -238,7 +230,7 @@ export default function Feed() {
           size="md"
           position="absolute"
           top={5}
-          right={20} // Increased from 14 to 20 to create more space
+          right={20} 
           onClick={onStatusOpen}
           zIndex={1}
         />

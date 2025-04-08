@@ -80,7 +80,6 @@ export default function NewsFeed() {
       setError(null); // Reset error state
       
       const apiKey = process.env.NEXT_PUBLIC_NEWS_API_KEY;
-      // Add timestamp to prevent caching
       const url = `http://api.mediastack.com/v1/news?access_key=${apiKey}&languages=en&timestamp=${Date.now()}`;
       
       const response = await fetch(url);
@@ -118,7 +117,6 @@ export default function NewsFeed() {
     }
   };
 
-  // Function to get next fetch time
   const getNextFetchTime = () => {
     const now = new Date();
     const currentHour = now.getHours();
@@ -152,7 +150,6 @@ export default function NewsFeed() {
   // Modified loadMore to use cached data
   const loadMore = () => {
     setPage(prevPage => prevPage + 1);
-    // Instead of fetching new data, we could implement pagination
     // using the cached news data
   };
 

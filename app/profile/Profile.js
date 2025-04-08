@@ -77,7 +77,6 @@ export default function Profile() {
           setUserInfo(userData);
           setBio(userData.bio || '');
         }
-        // Fetch user posts when user is authenticated
         await fetchUserPosts(user.uid);
       }
     });

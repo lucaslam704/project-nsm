@@ -71,7 +71,6 @@ export default function CommentSection({
     fetchUserProfiles();
   }, [comments]);
 
-  // Log authentication state for debugging
   useEffect(() => {
     console.log("Current authentication state:", currentUser ? "Logged in" : "Not logged in");
     if (currentUser) {
@@ -115,9 +114,7 @@ export default function CommentSection({
       setLoading(false);
     }
 
-    // Return a cleanup function
     return () => {
-      // Nothing to clean up
     };
   }, [postId, isOpen]);
 
@@ -144,7 +141,6 @@ export default function CommentSection({
 
     setNewComment(textBeforeCursor + emoji + textAfterCursor);
 
-    // Focus back on input after selecting emoji
     setTimeout(() => {
       inputRef.current.focus();
       inputRef.current.selectionStart = cursorPosition + emoji.length;
@@ -173,16 +169,12 @@ export default function CommentSection({
 
       console.log("Comment data prepared:", commentData);
 
-      // Add the comment to the local state immediately for better UX
       const optimisticComment = {
         id: 'temp-' + Date.now(),
         ...commentData
       };
 
-      // Update local state with the new comment
       setComments(prevComments => [...prevComments, optimisticComment]);
-
-      // Clear the input immediately for better UX
       setNewComment("");
 
       // Show a success message
@@ -208,11 +200,8 @@ export default function CommentSection({
         // Add the new comment
         allComments.push(optimisticComment);
 
-        // Save back to localStorage
         localStorage.setItem(localStorageKey, JSON.stringify(allComments));
-        console.log("Comment saved to localStorage");
 
-        // Notify parent component about the new comment
         if (onCommentAdded) {
           onCommentAdded(postId);
         }

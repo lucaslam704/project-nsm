@@ -23,8 +23,7 @@ import {
   IconButton,
   HStack
 } from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
-import { SmileIcon } from "../../../chakra-ui/icons"; // Updated relative path
+import { AddIcon, SmileIcon } from "@chakra-ui/icons";
 import EmojiPicker from 'emoji-picker-react';
 
 export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
@@ -197,7 +196,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
     setIsUploading(true);
 
     try {
-      // Show processing toast
       toast({
         title: "Processing image",
         description: "Please wait while your image is being processed...",
@@ -209,8 +207,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
       // Use the compressed image preview directly (base64 data URL)
       const imagePath = imagePreview;
 
-      console.log('Using image preview as data URL');
-
       // Save the post data to Firestore
       const username = currentUser?.email?.split('@')[0] || "User";
 
@@ -221,7 +217,7 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
         text: caption,
         imgSrc: imagePath, // Use the data URL directly
         createdAt: serverTimestamp(),
-        commentCount: 0 // Initialize comment count
+        commentCount: 0 
       };
 
       try {
@@ -229,7 +225,6 @@ export default function StatusPanel({ isOpen, onClose, onStatusSubmit }) {
         const docRef = await addDoc(collection(db, "posts"), postData);
         console.log('Post saved successfully with ID:', docRef.id);
 
-        // Create a post object for the UI
         const newPost = {
           id: docRef.id,
           userId: currentUser?.uid,
