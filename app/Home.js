@@ -16,28 +16,30 @@ import {
   Link,
   Container,
 } from "@chakra-ui/react";
+import { useAuth } from "@/utils/AuthContext";
 
 export default function Home() {
   const router = useRouter();
+  const { login } = useAuth();
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const AdminUser = {
-    "admin@gmail.com": {
-      password: "123",
-    },
-  };
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (AdminUser[email] && AdminUser[email].password === password) {
-      alert("Logging in as Administrator...");
-      localStorage.setItem("adminEmail", email);
+    setError("");
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      localStorage.setItem("userEmail", email);
       router.push("/main");
-      setError("");
-    } else {
-      setError("Server is only available for administrators.");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message || "Failed to login. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,7 +99,13 @@ export default function Home() {
                 </Link>
               </Box>
 
-              <Button type="submit" colorScheme="blue" w="full">
+              <Button
+                type="submit"
+                colorScheme="blue"
+                w="full"
+                isLoading={loading}
+                loadingText="Logging in"
+              >
                 Login
               </Button>
             </VStack>
