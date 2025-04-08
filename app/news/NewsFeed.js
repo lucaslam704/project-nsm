@@ -79,10 +79,9 @@ export default function NewsFeed() {
       setLoading(true);
       setError(null); // Reset error state
       
-      const apiKey = process.env.NEXT_PUBLIC_NEWS_API_KEY;
-      const url = `http://api.mediastack.com/v1/news?access_key=${apiKey}&languages=en&timestamp=${Date.now()}`;
+      // Use the proxy API route instead
+      const response = await fetch('/api/news');
       
-      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -107,6 +106,7 @@ export default function NewsFeed() {
         throw new Error('Invalid data format received');
       }
     } catch (err) {
+      console.error('News fetch error:', err);
       setError(err.message);
       const cachedNews = localStorage.getItem('cachedNews');
       if (cachedNews) {
@@ -259,6 +259,8 @@ export default function NewsFeed() {
     </HStack>
   );
 }
+
+
 
 
 
