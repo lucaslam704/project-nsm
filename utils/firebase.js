@@ -2,6 +2,7 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,6 +23,7 @@ if (!getApps().length) {
 // Initialize Firebase services
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 // Authentication functions
 export const registerUser = async (email, password) => {
@@ -40,4 +42,4 @@ export const resetPassword = async (email) => {
   return sendPasswordResetEmail(auth, email);
 };
 
-export { auth, db };
+export { auth, db, storage };

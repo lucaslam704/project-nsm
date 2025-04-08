@@ -1,0 +1,30 @@
+// Firestore Security Rules
+// Copy and paste these rules into your Firebase Console > Firestore Database > Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read and write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to read other user profiles (but not write)
+    match /users/{userId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// How to apply these rules:
+// 1. Go to Firebase Console: https://console.firebase.google.com/
+// 2. Select your project
+// 3. Go to Firestore Database in the left sidebar
+// 4. Click on the "Rules" tab
+// 5. Replace the existing rules with the ones above
+// 6. Click "Publish"
